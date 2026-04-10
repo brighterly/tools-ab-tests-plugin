@@ -35,11 +35,11 @@ class ExperimentsStatusBarWidget : StatusBarWidget, StatusBarWidget.TextPresenta
 
     override fun getText(): String {
         val service = ExperimentsService.getInstance()
-        val path = service.resolvedConfigPath()
+        val all = service.getAll()
         return when {
-            path.isBlank() -> "Exp ⚠"
-            service.getAll().isEmpty() -> "Exp ⚠"
-            else -> "Exp ✓ ${service.getAll().size}"
+            service.resolvedConfigs().isEmpty() -> "Exp ⚠"
+            all.isEmpty() -> "Exp ⚠"
+            else -> "Exp ✓ ${all.size}"
         }
     }
 
