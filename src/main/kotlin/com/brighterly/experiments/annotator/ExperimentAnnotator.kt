@@ -4,21 +4,17 @@ import com.brighterly.experiments.service.ExperimentsService
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.editor.markup.EffectType
 import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.psi.PsiElement
+import com.intellij.ui.JBColor
 import com.jetbrains.php.lang.psi.elements.StringLiteralExpression
 import java.awt.Font
 
-object ExperimentTextAttributes {
-    val CLOSED_KEY: TextAttributesKey = TextAttributesKey.createTextAttributesKey(
-        "EXPERIMENT_CLOSED",
-        TextAttributes(null, null, null, EffectType.STRIKEOUT, Font.PLAIN),
-    )
-}
-
 class ExperimentAnnotator : Annotator {
+
+    // Gray foreground + gray strikethrough — the standard "disabled/closed" look
+    private val closedAttributes = TextAttributes(JBColor.GRAY, null, JBColor.GRAY, EffectType.STRIKEOUT, Font.PLAIN)
 
     override fun annotate(element: PsiElement, holder: AnnotationHolder) {
         val literal = element as? StringLiteralExpression ?: return
@@ -33,7 +29,7 @@ class ExperimentAnnotator : Annotator {
             "Closed experiment — always uses branch: ${experiment.overrideBranch}",
         )
             .range(element)
-            .textAttributes(ExperimentTextAttributes.CLOSED_KEY)
+            .enforcedTextAttributes(closedAttributes)
             .create()
     }
 }

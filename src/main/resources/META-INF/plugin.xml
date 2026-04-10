@@ -54,5 +54,11 @@
             nameKey="inlay.hints.experiments.distribution.name"
             bundle="messages.ExperimentsBundle"/>
 
+        <!-- Status bar widget: shows "Exp ✓ 15" or "Exp ⚠" -->
+        <statusBarWidgetFactory
+            implementation="com.brighterly.experiments.statusbar.ExperimentsStatusBarWidgetFactory"
+            id="brighterly.experiments.status"
+            order="after Position"/>
+
     </extensions>
 </idea-plugin>

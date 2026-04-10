@@ -13,8 +13,12 @@ import com.jetbrains.php.lang.psi.elements.StringLiteralExpression
 
 class ExperimentInlayHintsProvider : InlayHintsProvider {
 
-    override fun createCollector(file: PsiFile, editor: Editor): InlayHintsCollector =
-        ExperimentHintsCollector()
+    override fun createCollector(file: PsiFile, editor: Editor): InlayHintsCollector? {
+        // Do not show distribution hints inside the config file itself
+        val configPath = ExperimentsService.getInstance().resolvedConfigPath()
+        if (configPath.isNotBlank() && file.virtualFile?.path == configPath) return null
+        return ExperimentHintsCollector()
+    }
 
     private class ExperimentHintsCollector : SharedBypassCollector {
 
