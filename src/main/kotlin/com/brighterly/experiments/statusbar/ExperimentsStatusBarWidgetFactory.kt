@@ -1,7 +1,6 @@
 package com.brighterly.experiments.statusbar
 
 import com.brighterly.experiments.service.ExperimentsService
-import com.brighterly.experiments.settings.ExperimentsSettings
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.StatusBar
@@ -46,19 +45,18 @@ class ExperimentsStatusBarWidget : StatusBarWidget, StatusBarWidget.TextPresenta
 
     override fun getTooltipText(): String {
         val service = ExperimentsService.getInstance()
-        val configuredPath = ExperimentsSettings.getInstance().state.configFilePath
-        val resolvedPath = service.resolvedConfigPath()
+        val configs = service.resolvedConfigs()
         val all = service.getAll()
 
         return when {
-            resolvedPath.isBlank() ->
-                "AB Tests: config not found. Set path in Settings → Tools → AB Tests"
+            configs.isEmpty() ->
+                "AB Tests: no config found. Add path in Settings → Tools → AB Tests"
             all.isEmpty() ->
-                "AB Tests: failed to parse or empty config at $resolvedPath"
-            configuredPath.isBlank() ->
-                "AB Tests: ${all.size} experiments loaded (auto-detected: $resolvedPath)"
-            else ->
-                "AB Tests: ${all.size} experiments loaded from $resolvedPath"
+                "AB Tests: failed to parse or empty configs at ${configs.joinToString { it.path }}"
+            else -> {
+                val paths = configs.joinToString("\n") { "  • ${it.path} (${it.type})" }
+                "AB Tests: ${all.size} experiments loaded from:\n$paths"
+            }
         }
     }
 }

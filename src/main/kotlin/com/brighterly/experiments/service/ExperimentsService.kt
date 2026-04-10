@@ -1,7 +1,10 @@
 package com.brighterly.experiments.service
 
+import com.brighterly.experiments.model.ConfigEntry
+import com.brighterly.experiments.model.ConfigType
 import com.brighterly.experiments.model.ExperimentData
 import com.brighterly.experiments.parser.ExperimentsConfigParser
+import com.brighterly.experiments.parser.JsonExperimentsParser
 import com.brighterly.experiments.settings.ExperimentsSettings
 import com.brighterly.experiments.statusbar.ExperimentsStatusBarWidgetFactory
 import com.intellij.openapi.Disposable
@@ -30,9 +33,8 @@ class ExperimentsService : Disposable {
                 VirtualFileManager.VFS_CHANGES,
                 object : BulkFileListener {
                     override fun after(events: List<VFileEvent>) {
-                        // Use resolvedConfigPath so auto-detected files are also watched
-                        val configPath = resolvedConfigPath()
-                        if (configPath.isNotBlank() && events.any { it.file?.path == configPath }) {
+                        val configPaths = resolvedConfigs().map { it.path }.toSet()
+                        if (events.any { it.file?.path in configPaths }) {
                             invalidateCache()
                         }
                     }
@@ -46,7 +48,6 @@ class ExperimentsService : Disposable {
 
     fun invalidateCache() {
         cache.set(null)
-        // Refresh the status bar widget in all open project windows
         ApplicationManager.getApplication().invokeLater {
             WindowManager.getInstance().allProjectFrames.forEach { frame ->
                 frame.statusBar?.updateWidget(ExperimentsStatusBarWidgetFactory.ID)
@@ -54,39 +55,60 @@ class ExperimentsService : Disposable {
         }
     }
 
+    /** Returns true if the given file path is one of the active config files. */
+    fun isConfigFile(path: String): Boolean = resolvedConfigs().any { it.path == path }
+
     /**
-     * Returns the effective config path: manually configured > auto-detected from open projects.
+     * Returns the active config entries: manually configured list, or auto-detected
+     * config/experiments.php and config/experiments.json from all open project roots.
      */
-    fun resolvedConfigPath(): String {
-        val configured = ExperimentsSettings.getInstance().state.configFilePath
-        if (configured.isNotBlank()) return configured
+    fun resolvedConfigs(): List<ConfigEntry> {
+        val configured = ExperimentsSettings.getInstance().state.configs.filter { it.path.isNotBlank() }
+        if (configured.isNotEmpty()) return configured
 
         return ProjectManager.getInstance().openProjects
-            .mapNotNull { it.basePath }
-            .map { "$it/config/experiments.php" }
-            .firstOrNull { File(it).exists() }
-            ?: ""
+            .flatMap { project ->
+                val base = project.basePath ?: return@flatMap emptyList()
+                listOf(
+                    ConfigEntry("$base/config/experiments.php", ConfigType.PHP),
+                    ConfigEntry("$base/config/experiments.json", ConfigType.JSON),
+                )
+            }
+            .filter { File(it.path).exists() }
     }
+
+    /**
+     * Convenience for callers that only need to know about a single path (e.g. legacy checks).
+     * Returns the first resolved config path, or blank if none.
+     */
+    fun resolvedConfigPath(): String = resolvedConfigs().firstOrNull()?.path ?: ""
 
     private fun loadAndCache(): Map<String, ExperimentData> {
-        val path = resolvedConfigPath()
-        if (path.isBlank()) return emptyMap()
+        val configs = resolvedConfigs()
+        if (configs.isEmpty()) return emptyMap()
 
-        val file = File(path)
-        if (!file.exists() || !file.isFile) {
-            logger.warn("Experiments config not found: $path")
-            return emptyMap()
+        val merged = mutableMapOf<String, ExperimentData>()
+        for (config in configs) {
+            val file = File(config.path)
+            if (!file.exists() || !file.isFile) {
+                logger.warn("Experiments config not found: ${config.path}")
+                continue
+            }
+            try {
+                val parsed = when (config.type) {
+                    ConfigType.PHP -> ExperimentsConfigParser.parse(file.readText())
+                    ConfigType.JSON -> JsonExperimentsParser.parse(file.readText())
+                }
+                merged.putAll(parsed)
+            } catch (e: Exception) {
+                logger.error("Failed to parse experiments config: ${config.path}", e)
+            }
         }
-
-        return try {
-            ExperimentsConfigParser.parse(file.readText()).also { cache.set(it) }
-        } catch (e: Exception) {
-            logger.error("Failed to parse experiments config", e)
-            emptyMap()
-        }
+        cache.set(merged)
+        return merged
     }
 
-    override fun dispose() {} // MessageBusConnection is auto-disposed via Disposable parent
+    override fun dispose() {}
 
     companion object {
         fun getInstance(): ExperimentsService = service()
