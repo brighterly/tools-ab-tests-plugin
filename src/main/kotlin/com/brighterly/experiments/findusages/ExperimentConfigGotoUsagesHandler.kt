@@ -6,29 +6,27 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.ide.IdeEventQueue
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiElement
 import com.jetbrains.php.lang.psi.elements.StringLiteralExpression
-import java.util.concurrent.ConcurrentHashMap
+import java.awt.event.MouseEvent
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * Makes Cmd+click on an experiment key in the config file show the ShowUsages popup —
- * the same rich panel (file name, line, code snippet) that appears when Cmd+clicking
- * on a PHP function declaration.
+ * Makes Cmd+click on an experiment key in the config file show the ShowUsages popup.
  *
- * The key is a declaration, not a reference, so there is no "definition" to navigate to.
- * Instead we programmatically invoke the "ShowUsages" action (Cmd+Alt+F7) with the
- * experiment key element as the PSI_ELEMENT in the data context. IntelliJ chains through
- * ExperimentFindUsagesProvider → ExperimentReferencesSearcher and renders the popup.
- *
- * Guard: IntelliJ calls getGotoDeclarationTargets multiple times per Cmd+click (once per
- * registered handler). pendingKeys ensures only one invokeLater is scheduled per key.
+ * IntelliJ calls getGotoDeclarationTargets multiple times per click (once per registered
+ * handler, potentially from multiple threads). The AtomicBoolean gate ensures exactly one
+ * ShowUsages popup is scheduled — compareAndSet(false, true) succeeds only for the first
+ * caller; all subsequent calls short-circuit. The flag is cleared in a finally block so
+ * the next Cmd+click works normally.
  */
 class ExperimentConfigGotoUsagesHandler : GotoDeclarationHandler {
 
     companion object {
-        private val pendingKeys: MutableSet<String> = ConcurrentHashMap.newKeySet()
+        private val pending = AtomicBoolean(false)
     }
 
     override fun getGotoDeclarationTargets(
@@ -44,21 +42,28 @@ class ExperimentConfigGotoUsagesHandler : GotoDeclarationHandler {
         val configPath = ExperimentsService.getInstance().resolvedConfigPath()
         if (configPath.isBlank() || element.containingFile?.virtualFile?.path != configPath) return null
 
+        // Ignore hover: getGotoDeclarationTargets is called both for Cmd+click and for the
+        // ctrl-underline hover preview. Only proceed when an actual mouse button is pressed.
+        val currentEvent = IdeEventQueue.getInstance().trueCurrentEvent
+        if (currentEvent !is MouseEvent || currentEvent.button == MouseEvent.NOBUTTON) return null
+
+        // Only the first caller wins; every other concurrent/subsequent call is a no-op.
+        if (!pending.compareAndSet(false, true)) return PsiElement.EMPTY_ARRAY
+
         val project = element.project
-
-        // Only schedule one invokeLater per key — guard against multiple handler calls.
-        if (!pendingKeys.add(key)) return PsiElement.EMPTY_ARRAY
-
         ApplicationManager.getApplication().invokeLater {
-            pendingKeys.remove(key)
-            val action = ActionManager.getInstance().getAction("ShowUsages") ?: return@invokeLater
-            val ctx = SimpleDataContext.builder()
-                .add(CommonDataKeys.PROJECT, project)
-                .add(CommonDataKeys.EDITOR, editor)
-                .add(CommonDataKeys.PSI_ELEMENT, element)
-                .build()
-            val event = AnActionEvent.createFromDataContext("GotoDeclaration", null, ctx)
-            action.actionPerformed(event)
+            try {
+                val action = ActionManager.getInstance().getAction("ShowUsages") ?: return@invokeLater
+                val ctx = SimpleDataContext.builder()
+                    .add(CommonDataKeys.PROJECT, project)
+                    .add(CommonDataKeys.EDITOR, editor)
+                    .add(CommonDataKeys.PSI_ELEMENT, element)
+                    .build()
+                val event = AnActionEvent.createFromDataContext("GotoDeclaration", null, ctx)
+                action.actionPerformed(event)
+            } finally {
+                pending.set(false)
+            }
         }
 
         return PsiElement.EMPTY_ARRAY
