@@ -39,6 +39,11 @@
             implementationClass="com.brighterly.experiments.findusages.ExperimentFindUsagesProvider"
             order="first"/>
 
+        <!-- Literal-text searcher: feeds usages to ReferencesSearch, bypassing word-index
+             splitting on hyphens in keys like "exp-23_pad-change-wording" -->
+        <referencesSearch
+            implementation="com.brighterly.experiments.findusages.ExperimentReferencesSearcher"/>
+
         <!-- Strikethrough for closed experiments -->
         <annotator
             language="PHP"
