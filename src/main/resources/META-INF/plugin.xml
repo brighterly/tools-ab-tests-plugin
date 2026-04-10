@@ -1,4 +1,4 @@
-<idea-plugin>
+<idea-plugin require-restart="false">
     <id>com.brighterly.experiments</id>
     <name>Brighterly Experiments</name>
     <vendor>Brighterly</vendor>
