@@ -1,0 +1,58 @@
+<idea-plugin>
+    <id>com.brighterly.experiments</id>
+    <name>Brighterly Experiments</name>
+    <vendor>Brighterly</vendor>
+    <description>
+        Highlights experiment keys from config/experiments.php in PHP code.
+        Shows branch distribution as inlay hints, hover documentation,
+        strikethrough for closed experiments, and Ctrl+click navigation to config.
+    </description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.jetbrains.php</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+
+        <!-- App-level service: parsed config cache + VFS watcher -->
+        <applicationService
+            serviceImplementation="com.brighterly.experiments.service.ExperimentsService"/>
+
+        <!-- App-level persistent settings (config file path) -->
+        <applicationService
+            serviceImplementation="com.brighterly.experiments.settings.ExperimentsSettings"/>
+
+        <!-- Settings page: Preferences > Tools > Brighterly Experiments -->
+        <applicationConfigurable
+            parentId="tools"
+            instance="com.brighterly.experiments.settings.ExperimentsSettingsConfigurable"
+            id="com.brighterly.experiments.settings"
+            displayName="Brighterly Experiments"/>
+
+        <!-- Ctrl+click / Go To Declaration -->
+        <psi.referenceContributor
+            language="PHP"
+            implementation="com.brighterly.experiments.reference.ExperimentKeyReferenceContributor"/>
+
+        <!-- Strikethrough for closed experiments -->
+        <annotator
+            language="PHP"
+            implementationClass="com.brighterly.experiments.annotator.ExperimentAnnotator"/>
+
+        <!-- Hover documentation popup -->
+        <lang.documentationProvider
+            language="PHP"
+            implementationClass="com.brighterly.experiments.documentation.ExperimentDocumentationProvider"
+            order="first"/>
+
+        <!-- Declarative inlay hints: [80/20] after each experiment key -->
+        <codeInsight.declarativeInlayProvider
+            language="PHP"
+            implementationClass="com.brighterly.experiments.hints.ExperimentInlayHintsProvider"
+            isEnabledByDefault="true"
+            group="OTHER_GROUP"
+            providerId="brighterly.experiments.distribution"
+            nameKey="inlay.hints.experiments.distribution.name"
+            bundle="messages.ExperimentsBundle"/>
+
+    </extensions>
+</idea-plugin>
