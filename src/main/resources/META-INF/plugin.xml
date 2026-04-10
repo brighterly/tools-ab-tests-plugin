@@ -39,6 +39,10 @@
             implementationClass="com.brighterly.experiments.findusages.ExperimentFindUsagesProvider"
             order="first"/>
 
+        <!-- Cmd+click on a key in the config file shows all usages instead of "no declaration" -->
+        <gotoDeclarationHandler
+            implementation="com.brighterly.experiments.findusages.ExperimentConfigGotoUsagesHandler"/>
+
         <!-- Literal-text searcher: feeds usages to ReferencesSearch, bypassing word-index
              splitting on hyphens in keys like "exp-23_pad-change-wording" -->
         <referencesSearch
