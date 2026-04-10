@@ -41,6 +41,7 @@ class ExperimentsSettingsConfigurable : Configurable {
         outer.add(buttonPanel, BorderLayout.SOUTH)
 
         panel = outer
+        reset()
         return outer
     }
 
@@ -101,9 +102,10 @@ class ExperimentsSettingsConfigurable : Configurable {
 
     override fun isModified(): Boolean {
         val current = ExperimentsSettings.getInstance().state.configs
-        if (rows.size != current.size) return true
-        return rows.zip(current).any { (row, entry) ->
-            row.pathField.text != entry.path || row.typeCombo.selectedItem != entry.type
+        val nonBlankRows = rows.filter { it.pathField.text.trim().isNotBlank() }
+        if (nonBlankRows.size != current.size) return true
+        return nonBlankRows.zip(current).any { (row, entry) ->
+            row.pathField.text.trim() != entry.path || row.typeCombo.selectedItem != entry.type
         }
     }
 
