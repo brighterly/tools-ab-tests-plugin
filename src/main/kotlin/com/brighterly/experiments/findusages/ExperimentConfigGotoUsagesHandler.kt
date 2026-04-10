@@ -10,6 +10,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiElement
 import com.jetbrains.php.lang.psi.elements.StringLiteralExpression
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Makes Cmd+click on an experiment key in the config file show the ShowUsages popup —
@@ -20,8 +21,15 @@ import com.jetbrains.php.lang.psi.elements.StringLiteralExpression
  * Instead we programmatically invoke the "ShowUsages" action (Cmd+Alt+F7) with the
  * experiment key element as the PSI_ELEMENT in the data context. IntelliJ chains through
  * ExperimentFindUsagesProvider → ExperimentReferencesSearcher and renders the popup.
+ *
+ * Guard: IntelliJ calls getGotoDeclarationTargets multiple times per Cmd+click (once per
+ * registered handler). pendingKeys ensures only one invokeLater is scheduled per key.
  */
 class ExperimentConfigGotoUsagesHandler : GotoDeclarationHandler {
+
+    companion object {
+        private val pendingKeys: MutableSet<String> = ConcurrentHashMap.newKeySet()
+    }
 
     override fun getGotoDeclarationTargets(
         sourceElement: PsiElement?,
@@ -38,9 +46,11 @@ class ExperimentConfigGotoUsagesHandler : GotoDeclarationHandler {
 
         val project = element.project
 
-        // Defer to the next EDT cycle so GotoDeclaration completes first, then the
-        // ShowUsages popup opens cleanly without conflicting with the current action.
+        // Only schedule one invokeLater per key — guard against multiple handler calls.
+        if (!pendingKeys.add(key)) return PsiElement.EMPTY_ARRAY
+
         ApplicationManager.getApplication().invokeLater {
+            pendingKeys.remove(key)
             val action = ActionManager.getInstance().getAction("ShowUsages") ?: return@invokeLater
             val ctx = SimpleDataContext.builder()
                 .add(CommonDataKeys.PROJECT, project)
@@ -51,8 +61,6 @@ class ExperimentConfigGotoUsagesHandler : GotoDeclarationHandler {
             action.actionPerformed(event)
         }
 
-        // Return EMPTY_ARRAY to suppress plain "Choose Target" navigation.
-        // ShowUsages popup will appear via invokeLater.
         return PsiElement.EMPTY_ARRAY
     }
 }
