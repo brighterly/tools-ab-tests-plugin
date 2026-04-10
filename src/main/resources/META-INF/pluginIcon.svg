@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
+  <!-- Background circle -->
+  <circle cx="20" cy="20" r="19" fill="#4B6EAF" />
+
+  <!-- Flask/beaker body -->
+  <path d="M15 10 L15 21 L10 31 Q9 33 11 33 L29 33 Q31 33 30 31 L25 21 L25 10 Z"
+        fill="none" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+
+  <!-- Flask neck top -->
+  <line x1="13" y1="10" x2="27" y2="10" stroke="white" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Liquid fill -->
+  <path d="M11.5 27 Q10.5 30 11 33 L29 33 Q29.5 30 28.5 27 Z" fill="white" opacity="0.3"/>
+
+  <!-- Bubbles -->
+  <circle cx="17" cy="29" r="1.5" fill="white" opacity="0.7"/>
+  <circle cx="22" cy="27" r="1" fill="white" opacity="0.7"/>
+  <circle cx="25" cy="30" r="1" fill="white" opacity="0.5"/>
+</svg>
