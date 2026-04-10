@@ -42,10 +42,12 @@ class ExperimentConfigGotoUsagesHandler : GotoDeclarationHandler {
         val configPath = ExperimentsService.getInstance().resolvedConfigPath()
         if (configPath.isBlank() || element.containingFile?.virtualFile?.path != configPath) return null
 
-        // Ignore hover: getGotoDeclarationTargets is called both for Cmd+click and for the
-        // ctrl-underline hover preview. Only proceed when an actual mouse button is pressed.
+        // Ignore hover: getGotoDeclarationTargets is called for both Cmd+click navigation and
+        // the ctrl-underline hover preview. Hover fires as MOUSE_MOVED with no button pressed.
+        // We only exclude that specific case — everything else (click, keyboard shortcut, or
+        // any non-mouse event IntelliJ emits during action dispatch) should proceed.
         val currentEvent = IdeEventQueue.getInstance().trueCurrentEvent
-        if (currentEvent !is MouseEvent || currentEvent.button == MouseEvent.NOBUTTON) return null
+        if (currentEvent is MouseEvent && currentEvent.id == MouseEvent.MOUSE_MOVED) return null
 
         // Only the first caller wins; every other concurrent/subsequent call is a no-op.
         if (!pending.compareAndSet(false, true)) return PsiElement.EMPTY_ARRAY
