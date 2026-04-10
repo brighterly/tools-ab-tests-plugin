@@ -33,6 +33,12 @@
             language="PHP"
             implementation="com.brighterly.experiments.reference.ExperimentKeyReferenceContributor"/>
 
+        <!-- Find Usages: Alt+F7 on a key in the config file finds all call sites -->
+        <lang.findUsagesProvider
+            language="PHP"
+            implementationClass="com.brighterly.experiments.findusages.ExperimentFindUsagesProvider"
+            order="first"/>
+
         <!-- Strikethrough for closed experiments -->
         <annotator
             language="PHP"
