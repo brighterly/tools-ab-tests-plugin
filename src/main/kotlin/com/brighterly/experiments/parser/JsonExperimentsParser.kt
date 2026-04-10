@@ -15,10 +15,14 @@ object JsonExperimentsParser {
             val obj = runCatching { value.asJsonObject }.getOrNull() ?: continue
 
             val branches = obj.getAsJsonArray("branches")
-                ?.associate { branch ->
-                    val b = branch.asJsonObject
-                    b.get("value").asString to b.get("percentage").asInt
-                } ?: emptyMap()
+                ?.mapNotNull { element ->
+                    val b = runCatching { element.asJsonObject }.getOrNull() ?: return@mapNotNull null
+                    val branchValue = b.get("value")?.takeIf { !it.isJsonNull }?.asString ?: return@mapNotNull null
+                    val pct = runCatching { b.get("percentage")?.asInt }.getOrNull() ?: return@mapNotNull null
+                    branchValue to pct
+                }
+                ?.toMap()
+                ?: emptyMap()
 
             val overrideBranch = obj.get("override_branch")?.takeIf { !it.isJsonNull }?.asString
 

@@ -73,4 +73,29 @@ class JsonExperimentsConfigParserTest {
     fun `returns empty map for empty json object`() {
         assertTrue(JsonExperimentsParser.parse("{}").isEmpty())
     }
+
+    @Test
+    fun `returns empty map for invalid json`() {
+        assertTrue(JsonExperimentsParser.parse("not json at all").isEmpty())
+    }
+
+    @Test
+    fun `skips malformed branch without crashing`() {
+        val json = """
+            {
+                "exp-1_test": {
+                    "branches": [
+                        {"value": "original", "percentage": 50},
+                        {"missing_fields": true}
+                    ]
+                }
+            }
+        """.trimIndent()
+        val result = JsonExperimentsParser.parse(json)
+        // Should parse successfully, skipping the malformed branch
+        assertEquals(1, result.size)
+        val exp = result["exp-1_test"]!!
+        assertEquals(1, exp.branches.size)
+        assertEquals(50, exp.branches["original"])
+    }
 }
