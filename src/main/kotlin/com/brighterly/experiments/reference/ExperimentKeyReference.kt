@@ -1,7 +1,10 @@
 package com.brighterly.experiments.reference
 
+import com.brighterly.experiments.model.ConfigType
 import com.brighterly.experiments.service.ExperimentsService
-import com.brighterly.experiments.settings.ExperimentsSettings
+import com.intellij.json.psi.JsonFile
+import com.intellij.json.psi.JsonObject
+import com.intellij.json.psi.JsonStringLiteral
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.psi.*
@@ -15,20 +18,34 @@ class ExperimentKeyReference(
 
     override fun resolve(): PsiElement? {
         val project = element.project
-        val configPath = ExperimentsService.getInstance().resolvedConfigPath()
-        if (configPath.isBlank()) return null
+        val configs = ExperimentsService.getInstance().resolvedConfigs()
 
-        val vFile = LocalFileSystem.getInstance().findFileByPath(configPath) ?: return null
-        val psiFile = PsiManager.getInstance(project).findFile(vFile) ?: return null
+        for (config in configs) {
+            val vFile = LocalFileSystem.getInstance().findFileByPath(config.path) ?: continue
+            val psiFile = PsiManager.getInstance(project).findFile(vFile) ?: continue
+            val found = when (config.type) {
+                ConfigType.PHP -> findInPhpFile(psiFile)
+                ConfigType.JSON -> findInJsonFile(psiFile)
+            }
+            if (found != null) return found
+        }
+        return null
+    }
 
-        val text = psiFile.text
+    private fun findInPhpFile(file: PsiFile): PsiElement? {
+        val text = file.text
         val idx = text.indexOf("'$experimentKey'")
         if (idx < 0) return null
-
-        // Return the StringLiteralExpression (not just the leaf token) so that
-        // ReferencesSearch can match it by element equality for Find Usages
-        val leaf = psiFile.findElementAt(idx + 1) ?: return null
+        val leaf = file.findElementAt(idx + 1) ?: return null
         return leaf.parent as? StringLiteralExpression ?: leaf
+    }
+
+    private fun findInJsonFile(file: PsiFile): PsiElement? {
+        val jsonFile = file as? JsonFile ?: return null
+        val root = jsonFile.topLevelValue as? JsonObject ?: return null
+        return root.propertyList
+            .find { it.name == experimentKey }
+            ?.nameElement
     }
 
     override fun getVariants(): Array<Any> = emptyArray()

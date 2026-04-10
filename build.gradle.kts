@@ -32,6 +32,7 @@ dependencies {
     intellijPlatform {
         phpstorm(providers.gradleProperty("platformVersion").get())
         bundledPlugin("com.jetbrains.php")
+        bundledPlugin("JavaScript")
         testFramework(TestFrameworkType.Platform)
     }
     testImplementation("junit:junit:4.13.2")
