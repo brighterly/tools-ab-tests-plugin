@@ -1,6 +1,6 @@
 <idea-plugin require-restart="false">
     <id>com.brighterly.experiments</id>
-    <name>Brighterly Experiments</name>
+    <name>AB Tests</name>
     <vendor>Brighterly</vendor>
     <description>
         Highlights experiment keys from config/experiments.php in PHP code.
@@ -21,12 +21,11 @@
         <applicationService
             serviceImplementation="com.brighterly.experiments.settings.ExperimentsSettings"/>
 
-        <!-- Settings page: Preferences > Tools > Brighterly Experiments -->
         <applicationConfigurable
             parentId="tools"
             instance="com.brighterly.experiments.settings.ExperimentsSettingsConfigurable"
             id="com.brighterly.experiments.settings"
-            displayName="Brighterly Experiments"/>
+            displayName="AB Tests"/>
 
         <!-- Ctrl+click / Go To Declaration -->
         <psi.referenceContributor

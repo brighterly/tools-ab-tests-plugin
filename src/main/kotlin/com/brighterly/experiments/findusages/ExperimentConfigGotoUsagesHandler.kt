@@ -6,27 +6,46 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
-import com.intellij.ide.IdeEventQueue
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiElement
 import com.jetbrains.php.lang.psi.elements.StringLiteralExpression
+import java.awt.AWTEvent
+import java.awt.Toolkit
 import java.awt.event.MouseEvent
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Makes Cmd+click on an experiment key in the config file show the ShowUsages popup.
  *
- * IntelliJ calls getGotoDeclarationTargets multiple times per click (once per registered
- * handler, potentially from multiple threads). The AtomicBoolean gate ensures exactly one
- * ShowUsages popup is scheduled — compareAndSet(false, true) succeeds only for the first
- * caller; all subsequent calls short-circuit. The flag is cleared in a finally block so
- * the next Cmd+click works normally.
+ * Two guards:
+ *
+ * 1. mouseDown — a Toolkit AWT listener tracks MOUSE_PRESSED / MOUSE_RELEASED globally.
+ *    Hover (no button held) sets this to false, so we return null and do nothing.
+ *    This is more reliable than checking IdeEventQueue.trueCurrentEvent, which may have
+ *    already advanced past the original mouse event by the time the handler fires.
+ *
+ * 2. pending — AtomicBoolean ensures only one ShowUsages popup is scheduled per click,
+ *    even if IntelliJ calls getGotoDeclarationTargets concurrently from multiple handlers.
  */
 class ExperimentConfigGotoUsagesHandler : GotoDeclarationHandler {
 
     companion object {
+        private val mouseDown = AtomicBoolean(false)
         private val pending = AtomicBoolean(false)
+
+        init {
+            Toolkit.getDefaultToolkit().addAWTEventListener(
+                { event ->
+                    val me = event as? MouseEvent ?: return@addAWTEventListener
+                    when (me.id) {
+                        MouseEvent.MOUSE_PRESSED -> mouseDown.set(true)
+                        MouseEvent.MOUSE_RELEASED -> mouseDown.set(false)
+                    }
+                },
+                AWTEvent.MOUSE_EVENT_MASK,
+            )
+        }
     }
 
     override fun getGotoDeclarationTargets(
@@ -42,14 +61,10 @@ class ExperimentConfigGotoUsagesHandler : GotoDeclarationHandler {
         val configPath = ExperimentsService.getInstance().resolvedConfigPath()
         if (configPath.isBlank() || element.containingFile?.virtualFile?.path != configPath) return null
 
-        // Ignore hover: getGotoDeclarationTargets is called for both Cmd+click navigation and
-        // the ctrl-underline hover preview. Hover fires as MOUSE_MOVED with no button pressed.
-        // We only exclude that specific case — everything else (click, keyboard shortcut, or
-        // any non-mouse event IntelliJ emits during action dispatch) should proceed.
-        val currentEvent = IdeEventQueue.getInstance().trueCurrentEvent
-        if (currentEvent is MouseEvent && currentEvent.id == MouseEvent.MOUSE_MOVED) return null
+        // Hover: no mouse button is pressed — skip entirely.
+        if (!mouseDown.get()) return null
 
-        // Only the first caller wins; every other concurrent/subsequent call is a no-op.
+        // Only the first caller wins; all concurrent/subsequent calls are no-ops.
         if (!pending.compareAndSet(false, true)) return PsiElement.EMPTY_ARRAY
 
         val project = element.project

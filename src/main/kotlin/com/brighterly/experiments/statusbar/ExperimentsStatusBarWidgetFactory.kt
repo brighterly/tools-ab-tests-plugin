@@ -16,7 +16,7 @@ class ExperimentsStatusBarWidgetFactory : StatusBarWidgetFactory {
     }
 
     override fun getId(): String = ID
-    override fun getDisplayName(): String = "Brighterly Experiments"
+    override fun getDisplayName(): String = "AB Tests"
     override fun isAvailable(project: Project): Boolean = true
     override fun createWidget(project: Project): StatusBarWidget = ExperimentsStatusBarWidget()
     override fun disposeWidget(widget: StatusBarWidget) = Disposer.dispose(widget)
@@ -49,13 +49,13 @@ class ExperimentsStatusBarWidget : StatusBarWidget, StatusBarWidget.TextPresenta
 
         return when {
             resolvedPath.isBlank() ->
-                "Brighterly Experiments: config not found. Set path in Settings → Tools → Brighterly Experiments"
+                "AB Tests: config not found. Set path in Settings → Tools → AB Tests"
             all.isEmpty() ->
-                "Brighterly Experiments: failed to parse or empty config at $resolvedPath"
+                "AB Tests: failed to parse or empty config at $resolvedPath"
             configuredPath.isBlank() ->
-                "Brighterly Experiments: ${all.size} experiments loaded (auto-detected: $resolvedPath)"
+                "AB Tests: ${all.size} experiments loaded (auto-detected: $resolvedPath)"
             else ->
-                "Brighterly Experiments: ${all.size} experiments loaded from $resolvedPath"
+                "AB Tests: ${all.size} experiments loaded from $resolvedPath"
         }
     }
 }

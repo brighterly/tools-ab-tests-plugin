@@ -9,20 +9,20 @@ class ExperimentsConfigParserTest {
     private val sampleConfig = """
         <?php
         return [
-            'exp-23_pad-change-wording' => [
+            'exp-1_example_experiment' => [
                 'branches' => [
                     ExperimentBranch::ORIGINAL->value => ['percentage' => 80],
                     ExperimentBranch::TEST->value => ['percentage' => 20],
                 ],
             ],
-            'exp-27_remove-limits-for-demo-reschedule' => [
+            'exp-2_example_experiment_2' => [
                 'branches' => [
                     ExperimentBranch::ORIGINAL->value => ['percentage' => 50],
                     ExperimentBranch::TEST->value => ['percentage' => 50],
                 ],
                 'override_branch' => ExperimentBranch::TEST->value,
             ],
-            'exp-49_pricing-test' => [
+            'exp-3_example_experiment_3' => [
                 'branches' => [
                     ExperimentBranch::ORIGINAL->value => ['percentage' => 70],
                     ExperimentBranch::TEST->value => ['percentage' => 30],
@@ -36,15 +36,15 @@ class ExperimentsConfigParserTest {
     fun `parses experiment keys`() {
         val result = ExperimentsConfigParser.parse(sampleConfig)
         assertEquals(3, result.size)
-        assertTrue(result.containsKey("exp-23_pad-change-wording"))
-        assertTrue(result.containsKey("exp-27_remove-limits-for-demo-reschedule"))
-        assertTrue(result.containsKey("exp-49_pricing-test"))
+        assertTrue(result.containsKey("exp-1_example_experiment"))
+        assertTrue(result.containsKey("exp-2_example_experiment_2"))
+        assertTrue(result.containsKey("exp-3_example_experiment_3"))
     }
 
     @Test
     fun `parses branch percentages`() {
         val result = ExperimentsConfigParser.parse(sampleConfig)
-        val exp = result["exp-23_pad-change-wording"]!!
+        val exp = result["exp-1_example_experiment"]!!
         assertEquals(80, exp.branches["original"])
         assertEquals(20, exp.branches["test"])
     }
@@ -52,7 +52,7 @@ class ExperimentsConfigParserTest {
     @Test
     fun `detects closed experiment with override_branch`() {
         val result = ExperimentsConfigParser.parse(sampleConfig)
-        val closed = result["exp-27_remove-limits-for-demo-reschedule"]!!
+        val closed = result["exp-2_example_experiment_2"]!!
         assertTrue(closed.isClosed)
         assertEquals("test", closed.overrideBranch)
     }
@@ -60,8 +60,8 @@ class ExperimentsConfigParserTest {
     @Test
     fun `open experiment has no overrideBranch`() {
         val result = ExperimentsConfigParser.parse(sampleConfig)
-        assertFalse(result["exp-23_pad-change-wording"]!!.isClosed)
-        assertNull(result["exp-23_pad-change-wording"]!!.overrideBranch)
+        assertFalse(result["exp-1_example_experiment"]!!.isClosed)
+        assertNull(result["exp-1_example_experiment"]!!.overrideBranch)
     }
 
     @Test

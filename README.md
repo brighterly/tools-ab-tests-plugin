@@ -1,4 +1,4 @@
-# Brighterly Experiments Plugin
+# Experiments Plugin
 
 PhpStorm plugin for working with experiment keys defined in `config/experiments.php`.
 
@@ -13,7 +13,7 @@ PhpStorm plugin for working with experiment keys defined in `config/experiments.
 
 ## Configuration
 
-Go to **Settings → Tools → Brighterly Experiments** and set the path to your `config/experiments.php`.
+Go to **Settings → Tools → AB Tests** and set the path to your `config/experiments.php`.
 
 If left blank, the plugin auto-detects `config/experiments.php` in the open project root.
 
@@ -21,14 +21,14 @@ If left blank, the plugin auto-detects `config/experiments.php` in the open proj
 
 ```php
 return [
-    'exp-23_pad-change-wording' => [
+    'exp-1_example-experiment-1' => [
         'branches' => [
             'control' => 50,
             'variant' => 50,
         ],
         'start_date' => '2024-01-15',
     ],
-    'exp-42_checkout-flow' => [
+    'exp-2_example-experiment-2' => [
         'branches' => [
             'control' => 80,
             'variant' => 20,

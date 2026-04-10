@@ -14,7 +14,7 @@ class ExperimentsSettingsConfigurable : Configurable {
     private var panel: JPanel? = null
     private val pathField = TextFieldWithBrowseButton()
 
-    override fun getDisplayName(): String = "Brighterly Experiments"
+    override fun getDisplayName(): String = "AB Tests"
 
     override fun createComponent(): JComponent {
         pathField.addBrowseFolderListener(
