@@ -1,9 +1,9 @@
 package com.brighterly.experiments.documentation
 
 import com.brighterly.experiments.service.ExperimentsService
+import com.brighterly.experiments.util.experimentKey
 import com.intellij.lang.documentation.AbstractDocumentationProvider
 import com.intellij.psi.PsiElement
-import com.jetbrains.php.lang.psi.elements.StringLiteralExpression
 
 class ExperimentDocumentationProvider : AbstractDocumentationProvider() {
 
@@ -42,10 +42,8 @@ class ExperimentDocumentationProvider : AbstractDocumentationProvider() {
     }
 
     private fun resolveKey(element: PsiElement, originalElement: PsiElement?): String? {
-        val literal = (originalElement?.parent as? StringLiteralExpression)
-            ?: (element as? StringLiteralExpression)
-            ?: return null
-        val value = literal.contents
-        return if (value.startsWith("exp-")) value else null
+        return originalElement?.parent?.experimentKey()
+            ?: originalElement?.experimentKey()
+            ?: element.experimentKey()
     }
 }

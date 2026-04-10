@@ -1,6 +1,7 @@
 package com.brighterly.experiments.hints
 
 import com.brighterly.experiments.service.ExperimentsService
+import com.brighterly.experiments.util.experimentKey
 import com.intellij.codeInsight.hints.declarative.InlayHintsCollector
 import com.intellij.codeInsight.hints.declarative.InlayHintsProvider
 import com.intellij.codeInsight.hints.declarative.InlayTreeSink
@@ -9,28 +10,21 @@ import com.intellij.codeInsight.hints.declarative.SharedBypassCollector
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import com.jetbrains.php.lang.psi.elements.StringLiteralExpression
 
 class ExperimentInlayHintsProvider : InlayHintsProvider {
 
     override fun createCollector(file: PsiFile, editor: Editor): InlayHintsCollector? {
-        // Do not show distribution hints inside the config file itself
-        val configPath = ExperimentsService.getInstance().resolvedConfigPath()
-        if (configPath.isNotBlank() && file.virtualFile?.path == configPath) return null
+        val filePath = file.virtualFile?.path ?: return ExperimentHintsCollector()
+        if (ExperimentsService.getInstance().isConfigFile(filePath)) return null
         return ExperimentHintsCollector()
     }
 
     private class ExperimentHintsCollector : SharedBypassCollector {
 
         override fun collectFromElement(element: PsiElement, sink: InlayTreeSink) {
-            val literal = element as? StringLiteralExpression ?: return
-            val value = literal.contents
-            if (!value.startsWith("exp-")) return
-
+            val value = element.experimentKey() ?: return
             val experiment = ExperimentsService.getInstance().getExperiment(value) ?: return
 
-            // Pass all params explicitly to avoid the Kotlin $default synthetic stub
-            // (the verifier flags calls through $default as deprecated API usage)
             sink.addPresentation(
                 position = InlineInlayPosition(element.textRange.endOffset, relatedToPrevious = true),
                 payloads = null,

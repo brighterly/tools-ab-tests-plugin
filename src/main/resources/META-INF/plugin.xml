@@ -10,6 +10,7 @@
 
     <depends>com.intellij.modules.platform</depends>
     <depends>com.jetbrains.php</depends>
+    <depends>JavaScript</depends>
 
     <extensions defaultExtensionNs="com.intellij">
 
@@ -65,6 +66,50 @@
             isEnabledByDefault="true"
             group="OTHER_GROUP"
             providerId="brighterly.experiments.distribution"
+            nameKey="inlay.hints.experiments.distribution.name"
+            bundle="messages.ExperimentsBundle"/>
+
+        <!-- JS/TS reference: Ctrl+click on experiment keys in JS/TS files -->
+        <psi.referenceContributor
+            language="JavaScript"
+            implementation="com.brighterly.experiments.reference.ExperimentKeyReferenceContributorJs"/>
+        <psi.referenceContributor
+            language="TypeScript"
+            implementation="com.brighterly.experiments.reference.ExperimentKeyReferenceContributorJs"/>
+
+        <!-- Strikethrough for closed experiments in JS/TS -->
+        <annotator
+            language="JavaScript"
+            implementationClass="com.brighterly.experiments.annotator.ExperimentAnnotator"/>
+        <annotator
+            language="TypeScript"
+            implementationClass="com.brighterly.experiments.annotator.ExperimentAnnotator"/>
+
+        <!-- Hover documentation in JS/TS -->
+        <lang.documentationProvider
+            language="JavaScript"
+            implementationClass="com.brighterly.experiments.documentation.ExperimentDocumentationProvider"
+            order="first"/>
+        <lang.documentationProvider
+            language="TypeScript"
+            implementationClass="com.brighterly.experiments.documentation.ExperimentDocumentationProvider"
+            order="first"/>
+
+        <!-- Inlay hints in JS/TS files -->
+        <codeInsight.declarativeInlayProvider
+            language="JavaScript"
+            implementationClass="com.brighterly.experiments.hints.ExperimentInlayHintsProvider"
+            isEnabledByDefault="true"
+            group="OTHER_GROUP"
+            providerId="brighterly.experiments.distribution.js"
+            nameKey="inlay.hints.experiments.distribution.name"
+            bundle="messages.ExperimentsBundle"/>
+        <codeInsight.declarativeInlayProvider
+            language="TypeScript"
+            implementationClass="com.brighterly.experiments.hints.ExperimentInlayHintsProvider"
+            isEnabledByDefault="true"
+            group="OTHER_GROUP"
+            providerId="brighterly.experiments.distribution.ts"
             nameKey="inlay.hints.experiments.distribution.name"
             bundle="messages.ExperimentsBundle"/>
 
