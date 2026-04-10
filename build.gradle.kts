@@ -1,7 +1,8 @@
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "2.1.0"
+    id("org.jetbrains.kotlin.jvm") version "2.3.20"
     id("org.jetbrains.intellij.platform") version "2.14.0"
 }
 
@@ -10,6 +11,14 @@ version = providers.gradleProperty("pluginVersion").get()
 
 kotlin {
     jvmToolchain(24)
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_21
+    }
+}
+
+tasks.withType<JavaCompile> {
+    sourceCompatibility = "21"
+    targetCompatibility = "21"
 }
 
 repositories {
