@@ -18,10 +18,10 @@ class ExperimentsSettingsConfigurable : Configurable {
 
     override fun createComponent(): JComponent {
         pathField.addBrowseFolderListener(
-            "Select Experiments Config File",
-            "Choose the PHP experiments config file (e.g. config/experiments.php)",
             null,
-            FileChooserDescriptorFactory.createSingleFileDescriptor("php"),
+            FileChooserDescriptorFactory.createSingleFileDescriptor("php")
+                .withTitle("Select Experiments Config File")
+                .withDescription("Choose the PHP experiments config file (e.g. config/experiments.php)"),
         )
         panel = FormBuilder.createFormBuilder()
             .addLabeledComponent(JBLabel("Config file path:"), pathField, 1, false)

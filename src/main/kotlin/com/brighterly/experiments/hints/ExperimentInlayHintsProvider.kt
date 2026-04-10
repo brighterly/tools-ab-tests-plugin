@@ -29,8 +29,12 @@ class ExperimentInlayHintsProvider : InlayHintsProvider {
 
             val experiment = ExperimentsService.getInstance().getExperiment(value) ?: return
 
+            // Pass all params explicitly to avoid the Kotlin $default synthetic stub
+            // (the verifier flags calls through $default as deprecated API usage)
             sink.addPresentation(
                 position = InlineInlayPosition(element.textRange.endOffset, relatedToPrevious = true),
+                payloads = null,
+                tooltip = null,
                 hasBackground = false,
             ) {
                 text(" [${experiment.distributionLabel}]")

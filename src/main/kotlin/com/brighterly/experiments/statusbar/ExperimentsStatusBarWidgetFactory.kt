@@ -23,10 +23,10 @@ class ExperimentsStatusBarWidgetFactory : StatusBarWidgetFactory {
     override fun canBeEnabledOn(statusBar: StatusBar): Boolean = true
 }
 
+// getPresentation() is deprecated — 2026.1+ discovers TextPresentation via instanceof
 class ExperimentsStatusBarWidget : StatusBarWidget, StatusBarWidget.TextPresentation {
 
     override fun ID(): String = ExperimentsStatusBarWidgetFactory.ID
-    override fun getPresentation(): StatusBarWidget.WidgetPresentation = this
     override fun install(statusBar: StatusBar) {}
     override fun dispose() {}
     override fun getAlignment(): Float = Component.CENTER_ALIGNMENT

@@ -3,8 +3,11 @@ package com.brighterly.experiments.findusages
 import com.brighterly.experiments.service.ExperimentsService
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandler
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Editor
@@ -76,8 +79,8 @@ class ExperimentConfigGotoUsagesHandler : GotoDeclarationHandler {
                     .add(CommonDataKeys.EDITOR, editor)
                     .add(CommonDataKeys.PSI_ELEMENT, element)
                     .build()
-                val event = AnActionEvent.createFromDataContext("GotoDeclaration", null, ctx)
-                action.actionPerformed(event)
+                val event = AnActionEvent.createEvent(ctx, null, ActionPlaces.UNKNOWN, ActionUiKind.NONE, null)
+                ActionUtil.performActionDumbAwareWithCallbacks(action, event)
             } finally {
                 pending.set(false)
             }
