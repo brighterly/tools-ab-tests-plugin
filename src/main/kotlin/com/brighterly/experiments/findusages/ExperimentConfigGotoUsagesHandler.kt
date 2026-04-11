@@ -19,6 +19,7 @@ import java.awt.AWTEvent
 import java.awt.Toolkit
 import java.awt.event.MouseEvent
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * Makes Cmd+click on an experiment key in the config file show the ShowUsages popup.
@@ -27,17 +28,18 @@ import java.util.concurrent.atomic.AtomicBoolean
  *
  * 1. mouseDown — a Toolkit AWT listener tracks MOUSE_PRESSED / MOUSE_RELEASED globally.
  *    Hover (no button held) sets this to false, so we return null and do nothing.
- *    This is more reliable than checking IdeEventQueue.trueCurrentEvent, which may have
- *    already advanced past the original mouse event by the time the handler fires.
  *
- * 2. pending — AtomicBoolean ensures only one ShowUsages popup is scheduled per click,
- *    even if IntelliJ calls getGotoDeclarationTargets concurrently from multiple handlers.
+ * 2. lastShownAt — timestamp cooldown (500 ms) prevents multiple popups when IntelliJ
+ *    calls getGotoDeclarationTargets more than once for the same click. A boolean pending
+ *    flag is unreliable because invokeLater may complete and reset it before a second call
+ *    arrives on the same EDT cycle.
  */
 class ExperimentConfigGotoUsagesHandler : GotoDeclarationHandler {
 
     companion object {
         private val mouseDown = AtomicBoolean(false)
-        private val pending = AtomicBoolean(false)
+        private val lastShownAt = AtomicLong(0L)
+        private const val COOLDOWN_MS = 500L
 
         init {
             Toolkit.getDefaultToolkit().addAWTEventListener(
@@ -69,22 +71,22 @@ class ExperimentConfigGotoUsagesHandler : GotoDeclarationHandler {
         ) return null
 
         if (!mouseDown.get()) return null
-        if (!pending.compareAndSet(false, true)) return PsiElement.EMPTY_ARRAY
+
+        // Cooldown: reject calls within 500 ms of the last shown popup.
+        val now = System.currentTimeMillis()
+        val last = lastShownAt.get()
+        if (now - last < COOLDOWN_MS || !lastShownAt.compareAndSet(last, now)) return PsiElement.EMPTY_ARRAY
 
         val project = element.project
         ApplicationManager.getApplication().invokeLater {
-            try {
-                val action = ActionManager.getInstance().getAction("ShowUsages") ?: return@invokeLater
-                val ctx = SimpleDataContext.builder()
-                    .add(CommonDataKeys.PROJECT, project)
-                    .add(CommonDataKeys.EDITOR, editor)
-                    .add(CommonDataKeys.PSI_ELEMENT, element)
-                    .build()
-                val event = AnActionEvent.createEvent(ctx, null, ActionPlaces.UNKNOWN, ActionUiKind.NONE, null)
-                ActionUtil.performActionDumbAwareWithCallbacks(action, event)
-            } finally {
-                pending.set(false)
-            }
+            val action = ActionManager.getInstance().getAction("ShowUsages") ?: return@invokeLater
+            val ctx = SimpleDataContext.builder()
+                .add(CommonDataKeys.PROJECT, project)
+                .add(CommonDataKeys.EDITOR, editor)
+                .add(CommonDataKeys.PSI_ELEMENT, element)
+                .build()
+            val event = AnActionEvent.createEvent(ctx, null, ActionPlaces.UNKNOWN, ActionUiKind.NONE, null)
+            ActionUtil.performActionDumbAwareWithCallbacks(action, event)
         }
 
         return PsiElement.EMPTY_ARRAY

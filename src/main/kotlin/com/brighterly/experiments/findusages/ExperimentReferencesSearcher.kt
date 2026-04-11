@@ -2,6 +2,7 @@ package com.brighterly.experiments.findusages
 
 import com.brighterly.experiments.reference.ExperimentKeyReference
 import com.brighterly.experiments.service.ExperimentsService
+import com.intellij.json.psi.JsonStringLiteral
 import com.intellij.lang.javascript.psi.JSLiteralExpression
 import com.intellij.openapi.application.QueryExecutorBase
 import com.intellij.openapi.fileTypes.FileTypeManager
@@ -23,11 +24,14 @@ class ExperimentReferencesSearcher : QueryExecutorBase<PsiReference, ReferencesS
         parameters: ReferencesSearch.SearchParameters,
         consumer: Processor<in PsiReference>,
     ) {
-        val element = parameters.elementToSearch as? StringLiteralExpression ?: return
-        val key = element.contents
-        if (!key.startsWith("exp-")) return
+        // Accept either a PHP string literal or a JSON string literal as the config key element
+        val (key, configPath) = when (val elem = parameters.elementToSearch) {
+            is StringLiteralExpression -> elem.contents to (elem.containingFile?.virtualFile?.path ?: return)
+            is JsonStringLiteral -> elem.value to (elem.containingFile?.virtualFile?.path ?: return)
+            else -> return
+        }
 
-        val configPath = element.containingFile?.virtualFile?.path ?: return
+        if (!key.startsWith("exp-")) return
         if (!ExperimentsService.getInstance().isConfigFile(configPath)) return
 
         val project = parameters.project
