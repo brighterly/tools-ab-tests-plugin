@@ -2,6 +2,8 @@ package com.brighterly.experiments.findusages
 
 import com.brighterly.experiments.service.ExperimentsService
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandler
+import com.intellij.json.psi.JsonProperty
+import com.intellij.json.psi.JsonStringLiteral
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionUiKind
@@ -57,17 +59,16 @@ class ExperimentConfigGotoUsagesHandler : GotoDeclarationHandler {
         editor: Editor,
     ): Array<PsiElement>? {
         val leaf = sourceElement ?: return null
-        val element = leaf.parent as? StringLiteralExpression ?: return null
-        val key = element.contents
-        if (!key.startsWith("exp-")) return null
 
-        val configPath = ExperimentsService.getInstance().resolvedConfigPath()
-        if (configPath.isBlank() || element.containingFile?.virtualFile?.path != configPath) return null
+        // Resolve the config key element — works for both PHP and JSON config files
+        val (element, key) = resolveConfigKeyElement(leaf) ?: return null
 
-        // Hover: no mouse button is pressed — skip entirely.
+        if (!ExperimentsService.getInstance().isConfigFile(
+                element.containingFile?.virtualFile?.path ?: return null
+            )
+        ) return null
+
         if (!mouseDown.get()) return null
-
-        // Only the first caller wins; all concurrent/subsequent calls are no-ops.
         if (!pending.compareAndSet(false, true)) return PsiElement.EMPTY_ARRAY
 
         val project = element.project
@@ -87,5 +88,27 @@ class ExperimentConfigGotoUsagesHandler : GotoDeclarationHandler {
         }
 
         return PsiElement.EMPTY_ARRAY
+    }
+
+    /**
+     * Returns (declarationElement, experimentKey) if the leaf is inside a config key,
+     * null otherwise. Handles both PHP StringLiteralExpression and JSON JsonStringLiteral.
+     */
+    private fun resolveConfigKeyElement(leaf: PsiElement): Pair<PsiElement, String>? {
+        // PHP config: 'exp-foo' => [...]
+        val phpLiteral = leaf.parent as? StringLiteralExpression
+        if (phpLiteral != null) {
+            val key = phpLiteral.contents
+            if (key.startsWith("exp-")) return phpLiteral to key
+        }
+
+        // JSON config: "exp-foo": { ... }  — the JsonStringLiteral must be a property key
+        val jsonLiteral = leaf.parent as? JsonStringLiteral
+        if (jsonLiteral != null && jsonLiteral.parent is JsonProperty) {
+            val key = jsonLiteral.value
+            if (key.startsWith("exp-")) return jsonLiteral to key
+        }
+
+        return null
     }
 }

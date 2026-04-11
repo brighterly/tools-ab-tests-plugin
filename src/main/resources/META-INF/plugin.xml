@@ -119,5 +119,11 @@
             id="brighterly.experiments.status"
             order="after Position"/>
 
+        <!-- Find Usages: Alt+F7 on a key in a JSON config file -->
+        <lang.findUsagesProvider
+            language="JSON"
+            implementationClass="com.brighterly.experiments.findusages.ExperimentFindUsagesProviderJson"
+            order="first"/>
+
     </extensions>
 </idea-plugin>
