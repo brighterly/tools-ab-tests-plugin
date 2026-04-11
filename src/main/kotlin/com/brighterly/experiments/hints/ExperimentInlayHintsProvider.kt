@@ -25,13 +25,19 @@ class ExperimentInlayHintsProvider : InlayHintsProvider {
             val value = element.experimentKey() ?: return
             val experiment = ExperimentsService.getInstance().getExperiment(value) ?: return
 
+            val label = if (experiment.isClosed) {
+                "[${experiment.overrideBranch}]"
+            } else {
+                "[${experiment.distributionLabel}]"
+            }
+
             sink.addPresentation(
                 position = InlineInlayPosition(element.textRange.endOffset, relatedToPrevious = true),
                 payloads = null,
                 tooltip = null,
                 hasBackground = false,
             ) {
-                text(" [${experiment.distributionLabel}]")
+                text(" $label")
             }
         }
     }

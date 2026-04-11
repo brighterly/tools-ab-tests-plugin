@@ -138,7 +138,8 @@
             id="brighterly.experiments.NewConfig"
             class="com.brighterly.experiments.actions.NewExperimentsConfigAction"
             text="Experiments Config"
-            description="Create a new experiments config file (PHP or JSON)">
+            description="Create a new experiments config file (PHP or JSON)"
+            icon="/icons/newExperimentsConfig.svg">
             <add-to-group group-id="NewGroup" anchor="last"/>
         </action>
     </actions>
