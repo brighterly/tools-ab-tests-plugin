@@ -98,7 +98,7 @@
         <!-- Inlay hints in JS/TS files -->
         <codeInsight.declarativeInlayProvider
             language="JavaScript"
-            implementationClass="com.brighterly.experiments.hints.ExperimentInlayHintsProvider"
+            implementationClass="com.brighterly.experiments.hints.ExperimentInlayHintsProviderJs"
             isEnabledByDefault="true"
             group="OTHER_GROUP"
             providerId="brighterly.experiments.distribution.js"
@@ -106,7 +106,7 @@
             bundle="messages.ExperimentsBundle"/>
         <codeInsight.declarativeInlayProvider
             language="TypeScript"
-            implementationClass="com.brighterly.experiments.hints.ExperimentInlayHintsProvider"
+            implementationClass="com.brighterly.experiments.hints.ExperimentInlayHintsProviderTs"
             isEnabledByDefault="true"
             group="OTHER_GROUP"
             providerId="brighterly.experiments.distribution.ts"

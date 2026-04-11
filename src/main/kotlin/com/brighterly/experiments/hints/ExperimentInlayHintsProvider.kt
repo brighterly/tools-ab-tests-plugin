@@ -19,7 +19,7 @@ class ExperimentInlayHintsProvider : InlayHintsProvider {
         return ExperimentHintsCollector()
     }
 
-    private class ExperimentHintsCollector : SharedBypassCollector {
+    internal class ExperimentHintsCollector : SharedBypassCollector {
 
         override fun collectFromElement(element: PsiElement, sink: InlayTreeSink) {
             val value = element.experimentKey() ?: return
