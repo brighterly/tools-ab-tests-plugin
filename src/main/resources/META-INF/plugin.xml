@@ -125,11 +125,10 @@
             implementationClass="com.brighterly.experiments.findusages.ExperimentFindUsagesProviderJson"
             order="first"/>
 
-        <!-- File templates: appear in Settings → Editor → File and Code Templates → Other -->
-        <fileTemplates>
-            <template name="Experiments PHP Config" file="fileTemplates/Experiments PHP Config.php"/>
-            <template name="Experiments JSON Config" file="fileTemplates/Experiments JSON Config.json"/>
-        </fileTemplates>
+        <!-- File templates: registers PHP/JSON stubs with FileTemplateManager so
+             CreateFileFromTemplateAction can look them up by name, and so they
+             appear in Settings → Editor → File and Code Templates → Other -->
+        <fileTemplates implementation="com.brighterly.experiments.actions.ExperimentsFileTemplateFactory"/>
 
     </extensions>
 

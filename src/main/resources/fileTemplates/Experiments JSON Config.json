@@ -1,0 +1,15 @@
+{
+    "exp-1_example-experiment": {
+        "branches": [
+            { "value": "control", "percentage": 50 },
+            { "value": "variant", "percentage": 50 }
+        ]
+    },
+    "exp-2_closed-experiment": {
+        "branches": [
+            { "value": "original", "percentage": 80 },
+            { "value": "test", "percentage": 20 }
+        ],
+        "override_branch": "original"
+    }
+}
