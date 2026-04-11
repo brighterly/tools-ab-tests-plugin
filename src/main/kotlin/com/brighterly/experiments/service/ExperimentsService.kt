@@ -13,6 +13,7 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.ProjectManager
+import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.BulkFileListener
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
@@ -56,6 +57,11 @@ class ExperimentsService : Disposable {
         ApplicationManager.getApplication().invokeLater {
             WindowManager.getInstance().allProjectFrames.forEach { frame ->
                 frame.statusBar?.updateWidget(ExperimentsStatusBarWidgetFactory.ID)
+            }
+            // Re-run annotators and inlay hint providers on all open files so that
+            // editors immediately reflect the updated experiment config.
+            ProjectManager.getInstance().openProjects.forEach { project ->
+                DaemonCodeAnalyzer.getInstance(project).restart()
             }
         }
     }
