@@ -125,5 +125,23 @@
             implementationClass="com.brighterly.experiments.findusages.ExperimentFindUsagesProviderJson"
             order="first"/>
 
+        <!-- File templates: appear in Settings → Editor → File and Code Templates → Other -->
+        <fileTemplates>
+            <template name="Experiments PHP Config" file="fileTemplates/Experiments PHP Config.php"/>
+            <template name="Experiments JSON Config" file="fileTemplates/Experiments JSON Config.json"/>
+        </fileTemplates>
+
     </extensions>
+
+    <actions>
+        <!-- New → Experiments Config in project tree context menu -->
+        <action
+            id="brighterly.experiments.NewConfig"
+            class="com.brighterly.experiments.actions.NewExperimentsConfigAction"
+            text="Experiments Config"
+            description="Create a new experiments config file (PHP or JSON)">
+            <add-to-group group-id="NewGroup" anchor="last"/>
+        </action>
+    </actions>
+
 </idea-plugin>

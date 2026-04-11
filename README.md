@@ -10,7 +10,8 @@ PhpStorm plugin for working with A/B experiment keys defined in `config/experime
 - **Inlay hints** — shows `[80/20]` branch distribution after each key at call sites
 - **Hover documentation** — branch percentages, closed status, start date on hover
 - **Strikethrough** — closed experiments (those with `override_branch`) are crossed out at every usage
-- **Status bar widget** — shows `Exp ✓ 15` when config is loaded, `Exp ⚠` when not configured or empty
+- **Status bar widget** — shows `Exp ✓ 15` when config is loaded; click to see per-file experiment counts and open config files directly
+- **File stubs** — generate a new config file with example experiments via **right-click → New → Experiments Config**
 
 All features work in PHP, JavaScript, and TypeScript files.
 
@@ -64,6 +65,12 @@ return [
 ```
 
 Multiple config files (mixing PHP and JSON) can be active simultaneously — experiments are merged from all of them.
+
+## Generating config file stubs
+
+Right-click any directory in the project tree → **New → Experiments Config**, enter a filename (e.g. `experiments`), and choose **PHP** or **JSON**. The file is created with two example experiments — one open, one closed.
+
+The templates are also editable in **Settings → Editor → File and Code Templates → Other → Experiments PHP Config / Experiments JSON Config**.
 
 ## Requirements
 

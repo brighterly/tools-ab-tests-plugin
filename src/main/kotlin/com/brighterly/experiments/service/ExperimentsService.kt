@@ -25,6 +25,7 @@ class ExperimentsService : Disposable {
 
     private val logger = thisLogger()
     private val cache = AtomicReference<Map<String, ExperimentData>?>(null)
+    private val countsCache = AtomicReference<Map<String, Int>?>(null)
 
     init {
         ApplicationManager.getApplication().messageBus
@@ -46,8 +47,12 @@ class ExperimentsService : Disposable {
 
     fun getAll(): Map<String, ExperimentData> = cache.get() ?: loadAndCache()
 
+    /** Returns a map of config path → experiment count, populated alongside the main cache. */
+    fun getCountsPerConfig(): Map<String, Int> = countsCache.get() ?: run { loadAndCache(); countsCache.get() ?: emptyMap() }
+
     fun invalidateCache() {
         cache.set(null)
+        countsCache.set(null)
         ApplicationManager.getApplication().invokeLater {
             WindowManager.getInstance().allProjectFrames.forEach { frame ->
                 frame.statusBar?.updateWidget(ExperimentsStatusBarWidgetFactory.ID)
@@ -88,10 +93,12 @@ class ExperimentsService : Disposable {
         if (configs.isEmpty()) return emptyMap()
 
         val merged = mutableMapOf<String, ExperimentData>()
+        val perConfig = mutableMapOf<String, Int>()
         for (config in configs) {
             val file = File(config.path)
             if (!file.exists() || !file.isFile) {
                 logger.warn("Experiments config not found: ${config.path}")
+                perConfig[config.path] = 0
                 continue
             }
             try {
@@ -99,12 +106,15 @@ class ExperimentsService : Disposable {
                     ConfigType.PHP -> ExperimentsConfigParser.parse(file.readText())
                     ConfigType.JSON -> JsonExperimentsParser.parse(file.readText())
                 }
+                perConfig[config.path] = parsed.size
                 merged.putAll(parsed)
             } catch (e: Exception) {
                 logger.error("Failed to parse experiments config: ${config.path}", e)
+                perConfig[config.path] = 0
             }
         }
         cache.set(merged)
+        countsCache.set(perConfig)
         return merged
     }
 

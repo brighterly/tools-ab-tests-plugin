@@ -57,7 +57,7 @@ class ExperimentReferencesSearcher : QueryExecutorBase<PsiReference, ReferencesS
 
         // Scan JavaScript and TypeScript files
         val ftManager = FileTypeManager.getInstance()
-        for (ext in listOf("js", "ts", "jsx", "tsx")) {
+        for (ext in listOf("ts", "vue", "tsx")) {
             val fileType = ftManager.getFileTypeByExtension(ext)
             if (fileType is UnknownFileType) continue
             FileTypeIndex.getFiles(fileType, globalScope).forEach { vFile ->
