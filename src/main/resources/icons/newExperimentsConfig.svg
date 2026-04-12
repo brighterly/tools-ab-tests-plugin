@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- File shape -->
+  <path d="M3 1h7l3 3v11H3V1z" fill="#6C707E"/>
+  <path d="M10 1v3h3" fill="none" stroke="#6C707E" stroke-width="0.5"/>
+  <path d="M10 1l3 3h-3z" fill="#9AA0AA"/>
+  <!-- A/B label -->
+  <text x="4" y="11" font-size="5.5" fill="#FFFFFF" font-family="Arial" font-weight="bold" letter-spacing="0.5">A/B</text>
+</svg>

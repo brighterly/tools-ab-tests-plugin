@@ -2,11 +2,58 @@
     <id>com.brighterly.experiments</id>
     <name>AB Tests</name>
     <vendor>Brighterly</vendor>
-    <description>
-        Highlights experiment keys from config/experiments.php in PHP code.
-        Shows branch distribution as inlay hints, hover documentation,
-        strikethrough for closed experiments, and Ctrl+click navigation to config.
-    </description>
+    <description><![CDATA[
+        <p>
+            First-class IDE support for A/B experiment keys defined in PHP or JSON config files.
+            Works across PHP, JavaScript, TypeScript, and Vue files.
+        </p>
+
+        <h3>Config file support</h3>
+        <ul>
+            <li>Supports both <b>PHP</b> (<code>experiments.php</code>) and <b>JSON</b> (<code>experiments.json</code>) config formats.</li>
+            <li>Multiple config files — configure any number of paths in <b>Settings → Tools → AB Tests</b>.</li>
+            <li>Auto-detects <code>config/experiments.php</code> and <code>config/experiments.json</code> in open projects when no paths are configured.</li>
+            <li>Config index reloads automatically when a config file is saved.</li>
+        </ul>
+
+        <h3>Inlay hints</h3>
+        <ul>
+            <li>Shows <code>[50/50]</code> distribution after each open experiment key.</li>
+            <li>Shows <code>[override_branch]</code> after each closed (overridden) experiment key.</li>
+            <li>Works in PHP, JS, TS, and Vue <code>&lt;script&gt;</code> blocks.</li>
+        </ul>
+
+        <h3>Editor annotations</h3>
+        <ul>
+            <li><b>Strikethrough</b> — closed experiments are rendered with a strikethrough to signal they are no longer active.</li>
+            <li><b>Branch sum warning</b> — highlights experiment keys in config files when branch percentages do not sum to 100%.</li>
+        </ul>
+
+        <h3>Navigation &amp; references</h3>
+        <ul>
+            <li><b>Ctrl+Click</b> on any experiment key jumps to its definition in the config file.</li>
+            <li><b>Cmd+Click</b> on a key inside the config file shows all usages across the project.</li>
+            <li><b>Alt+F7 Find Usages</b> works on keys in both PHP and JSON config files.</li>
+        </ul>
+
+        <h3>Hover documentation</h3>
+        <ul>
+            <li>Hovering an experiment key shows a popup with branches, percentages, override branch, and start date.</li>
+        </ul>
+
+        <h3>Status bar widget</h3>
+        <ul>
+            <li>Displays the total number of loaded experiments and config file count in the status bar.</li>
+            <li>Click the widget to see a per-file breakdown and open any config file in the editor.</li>
+            <li>Includes a <b>Reload configs</b> action to force a re-index.</li>
+        </ul>
+
+        <h3>File templates</h3>
+        <ul>
+            <li><b>Right-click → New → Experiments Config</b> — creates a new PHP or JSON config file with example experiments.</li>
+            <li>Templates are also available in <b>Settings → Editor → File and Code Templates → Other</b> for customisation.</li>
+        </ul>
+    ]]></description>
 
     <depends>com.intellij.modules.platform</depends>
     <depends>com.jetbrains.php</depends>
@@ -67,6 +114,24 @@
             group="OTHER_GROUP"
             providerId="brighterly.experiments.distribution"
             nameKey="inlay.hints.experiments.distribution.name"
+            bundle="messages.ExperimentsBundle"/>
+
+        <!-- Inline ⚠ hint in config files when branch percentages don't sum to 100 -->
+        <codeInsight.declarativeInlayProvider
+            language="PHP"
+            implementationClass="com.brighterly.experiments.hints.ExperimentConfigInlayHintsProvider"
+            isEnabledByDefault="true"
+            group="OTHER_GROUP"
+            providerId="brighterly.experiments.config.validation"
+            nameKey="inlay.hints.experiments.config.validation.name"
+            bundle="messages.ExperimentsBundle"/>
+        <codeInsight.declarativeInlayProvider
+            language="JSON"
+            implementationClass="com.brighterly.experiments.hints.ExperimentConfigInlayHintsProvider"
+            isEnabledByDefault="true"
+            group="OTHER_GROUP"
+            providerId="brighterly.experiments.config.validation"
+            nameKey="inlay.hints.experiments.config.validation.name"
             bundle="messages.ExperimentsBundle"/>
 
         <!-- JS/TS reference: Ctrl+click on experiment keys in JS/TS files -->
