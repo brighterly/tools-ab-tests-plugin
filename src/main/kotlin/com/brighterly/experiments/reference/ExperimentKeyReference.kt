@@ -4,7 +4,6 @@ import com.brighterly.experiments.model.ConfigType
 import com.brighterly.experiments.service.ExperimentsService
 import com.intellij.json.psi.JsonFile
 import com.intellij.json.psi.JsonObject
-import com.intellij.json.psi.JsonStringLiteral
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.psi.*
@@ -43,7 +42,9 @@ class ExperimentKeyReference(
     private fun findInJsonFile(file: PsiFile): PsiElement? {
         val jsonFile = file as? JsonFile ?: return null
         val root = jsonFile.topLevelValue as? JsonObject ?: return null
-        return root.propertyList
+        // Remote/cached configs nest experiments under "experiments"; legacy files are flat.
+        val container = (root.findProperty("experiments")?.value as? JsonObject) ?: root
+        return container.propertyList
             .find { it.name == experimentKey }
             ?.nameElement
     }

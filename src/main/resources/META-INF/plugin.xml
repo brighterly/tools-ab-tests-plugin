@@ -8,12 +8,12 @@
             Works across PHP, JavaScript, TypeScript, and Vue files.
         </p>
 
-        <h3>Config file support</h3>
+        <h3>Experiment sources</h3>
         <ul>
-            <li>Supports both <b>PHP</b> (<code>experiments.php</code>) and <b>JSON</b> (<code>experiments.json</code>) config formats.</li>
-            <li>Multiple config files — configure any number of paths in <b>Settings → Tools → AB Tests</b>.</li>
-            <li>Auto-detects <code>config/experiments.php</code> and <code>config/experiments.json</code> in open projects when no paths are configured.</li>
-            <li>Config index reloads automatically when a config file is saved.</li>
+            <li><b>Environments</b> — fetch experiments from per-environment URLs (development, staging, sandbox, production, local). Configure them in <b>Settings → Tools → AB Tests</b>.</li>
+            <li><b>Switch &amp; sync</b> — pick the active environment and re-fetch from the status bar widget.</li>
+            <li>Fetched configs are cached locally so navigation and Find Usages keep working.</li>
+            <li><b>Local files (deprecated)</b> — legacy <code>experiments.php</code>/<code>experiments.json</code> support is off by default; enable it under <b>Settings → Tools → AB Tests</b>.</li>
         </ul>
 
         <h3>Inlay hints</h3>
@@ -43,9 +43,8 @@
 
         <h3>Status bar widget</h3>
         <ul>
-            <li>Displays the total number of loaded experiments and config file count in the status bar.</li>
-            <li>Click the widget to see a per-file breakdown and open any config file in the editor.</li>
-            <li>Includes a <b>Reload configs</b> action to force a re-index.</li>
+            <li>Shows the active environment and loaded experiment count, e.g. <code>Exp: staging ✓ 16</code>.</li>
+            <li>Click to switch environment, <b>Sync now</b>, or open settings.</li>
         </ul>
 
         <h3>File templates</h3>
@@ -74,6 +73,13 @@
             instance="com.brighterly.experiments.settings.ExperimentsSettingsConfigurable"
             id="com.brighterly.experiments.settings"
             displayName="AB Tests"/>
+
+        <!-- Notification group for sync failures -->
+        <notificationGroup id="AB Tests" displayType="BALLOON"/>
+
+        <!-- Fetch the active environment on project open -->
+        <postStartupActivity
+            implementation="com.brighterly.experiments.startup.ExperimentsStartupActivity"/>
 
         <!-- Ctrl+click / Go To Declaration -->
         <psi.referenceContributor

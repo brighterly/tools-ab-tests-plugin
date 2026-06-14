@@ -48,6 +48,17 @@ intellijPlatform {
             sinceBuild = providers.gradleProperty("pluginSinceBuild")
             untilBuild = providers.gradleProperty("pluginUntilBuild")
         }
+        changeNotes = """
+            <h3>1.2.0</h3>
+            <ul>
+                <li><b>Experiments from environment URLs</b> — fetch A/B experiments from per-environment config URLs (development, staging, sandbox, production, local) instead of local files.</li>
+                <li><b>Environment switcher in the status bar</b> — pick the active environment and re-fetch with <b>Sync now</b>; the widget shows the active environment and experiment count.</li>
+                <li><b>Auto-sync</b> on IDE startup and whenever you switch environments.</li>
+                <li><b>Local caching</b> — fetched configs are cached on disk so Ctrl+click navigation and Find Usages keep working.</li>
+                <li><b>Local file configs are now deprecated</b> — hidden by default; re-enable under <b>Settings → Tools → AB Tests</b> ("Show experiments from local files"). On a key conflict, the active environment URL wins.</li>
+                <li>Compatibility extended to PhpStorm build 261.</li>
+            </ul>
+        """.trimIndent()
     }
 
     signing {

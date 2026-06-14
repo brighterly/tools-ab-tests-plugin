@@ -1,6 +1,6 @@
 # Experiments Plugin
 
-PhpStorm plugin for working with A/B experiment keys defined in `config/experiments.php` or `config/experiments.json`.
+PhpStorm plugin for working with A/B experiment keys. Experiments are fetched from per-environment config URLs (development, staging, sandbox, production, local); legacy local `config/experiments.php` / `experiments.json` files are still supported but deprecated.
 
 ## Features
 
@@ -17,9 +17,13 @@ All features work in PHP, JavaScript, and TypeScript files.
 
 ## Configuration
 
-Go to **Settings → Tools → AB Tests** and add one or more config file paths. Each entry has a path and a type (PHP or JSON).
+Go to **Settings → Tools → AB Tests**:
 
-If no paths are configured, the plugin auto-detects `config/experiments.php` and `config/experiments.json` in the open project root.
+- **Environments** — each row is a label + a config URL (e.g. `https://storage.googleapis.com/brighterly-dev-configs/configs.json`). Pick the **active environment**; its URL is the source of experiments.
+- **Active environment** can also be switched from the status bar widget, which offers **Sync now** to re-fetch.
+- **Legacy file configs (deprecated)** — tick *Show experiments from local files (deprecated)* to also read `experiments.php` / `experiments.json` paths. Off by default. On a key conflict, the environment URL wins.
+
+The remote JSON nests experiments under an `"experiments"` key; legacy local files keep `exp-*` keys at the top level. Both are supported.
 
 ## Config file formats
 
