@@ -9,8 +9,12 @@ object JsonExperimentsParser {
         val root = runCatching { JsonParser.parseString(jsonContent).asJsonObject }
             .getOrNull() ?: return emptyMap()
 
+        // Remote/cached configs nest experiments under an "experiments" object;
+        // legacy local files put exp-* keys at the top level. Support both.
+        val container = runCatching { root.getAsJsonObject("experiments") }.getOrNull() ?: root
+
         val result = mutableMapOf<String, ExperimentData>()
-        for ((key, value) in root.entrySet()) {
+        for ((key, value) in container.entrySet()) {
             if (!key.startsWith("exp-")) continue
             val obj = runCatching { value.asJsonObject }.getOrNull() ?: continue
 
@@ -25,12 +29,13 @@ object JsonExperimentsParser {
                 ?: emptyMap()
 
             val overrideBranch = obj.get("override_branch")?.takeIf { !it.isJsonNull }?.asString
+            val startDate = obj.get("start_date")?.takeIf { !it.isJsonNull }?.asString
 
             result[key] = ExperimentData(
                 key = key,
                 branches = branches,
                 overrideBranch = overrideBranch,
-                startDate = null,
+                startDate = startDate,
             )
         }
         return result

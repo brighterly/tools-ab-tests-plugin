@@ -98,4 +98,62 @@ class JsonExperimentsConfigParserTest {
         assertEquals(1, exp.branches.size)
         assertEquals(50, exp.branches["original"])
     }
+
+    private val wrappedJson = """
+        {
+            "settings": { "feature_x": true },
+            "experiments": {
+                "exp-23_pad-change-wording": {
+                    "branches": [
+                        {"value": "original", "percentage": 80},
+                        {"value": "test", "percentage": 20}
+                    ],
+                    "override_branch": null,
+                    "start_date": "2026-01-15"
+                },
+                "exp-88_sales-tax": {
+                    "branches": [
+                        {"value": "original", "percentage": 50},
+                        {"value": "test", "percentage": 50}
+                    ],
+                    "override_branch": "test",
+                    "start_date": null
+                }
+            }
+        }
+    """.trimIndent()
+
+    @Test
+    fun `parses experiments nested under experiments key`() {
+        val result = JsonExperimentsParser.parse(wrappedJson)
+        assertEquals(2, result.size)
+        assertTrue(result.containsKey("exp-23_pad-change-wording"))
+        assertEquals(80, result["exp-23_pad-change-wording"]!!.branches["original"])
+        assertTrue(result["exp-88_sales-tax"]!!.isClosed)
+    }
+
+    @Test
+    fun `parses start_date when present`() {
+        val result = JsonExperimentsParser.parse(wrappedJson)
+        assertEquals("2026-01-15", result["exp-23_pad-change-wording"]!!.startDate)
+        assertNull(result["exp-88_sales-tax"]!!.startDate)
+    }
+
+    @Test
+    fun `ignores settings block and non-exp keys in wrapper`() {
+        val result = JsonExperimentsParser.parse(wrappedJson)
+        assertFalse(result.containsKey("settings"))
+        assertFalse(result.containsKey("feature_x"))
+    }
+
+    @Test
+    fun `still parses flat legacy format`() {
+        assertEquals(2, JsonExperimentsParser.parse(sampleJson).size)
+    }
+
+    @Test
+    fun `returns empty when only settings present`() {
+        val json = """{"settings": {"a": 1}}"""
+        assertTrue(JsonExperimentsParser.parse(json).isEmpty())
+    }
 }
