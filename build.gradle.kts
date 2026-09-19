@@ -46,9 +46,15 @@ intellijPlatform {
         version = providers.gradleProperty("pluginVersion")
         ideaVersion {
             sinceBuild = providers.gradleProperty("pluginSinceBuild")
-            untilBuild = providers.gradleProperty("pluginUntilBuild")
+            // Explicitly unset (not just omitted) so patchPluginXml doesn't fall back to
+            // "<platform major>.*" — this keeps the plugin compatible with future IDE releases.
+            untilBuild = provider { null }
         }
         changeNotes = """
+            <h3>1.2.1</h3>
+            <ul>
+                <li>Removed the plugin's until-build ceiling so it stays compatible with new PhpStorm releases (fixes incompatibility on 2026.2.x) without needing a release for every IDE version bump.</li>
+            </ul>
             <h3>1.2.0</h3>
             <ul>
                 <li><b>Experiments from environment URLs</b> — fetch A/B experiments from per-environment config URLs (development, staging, sandbox, production, local) instead of local files.</li>
